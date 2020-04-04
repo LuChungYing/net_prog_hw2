@@ -1,13 +1,13 @@
 all: client server                                                                                                                                                                                      
-client: client.o huffman.o
-	gcc  -o client client.o 
+client: huffman.o client.o
+	gcc  -o client client.o huffman.o
 server: server.o
 	gcc  -o server server.o 
-client.o: huffman.h
-	gcc -c client.c
-server.o:
-	gcc -c server.c
 huffman.o:
 	gcc -c huffman.c
+client.o: huffman.h huffman.c
+	gcc -c client.c huffman.c
+server.o:
+	gcc -c server.c
 clean:
 	rm -f client.o server.o

@@ -6,22 +6,20 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
-char oigindata[1000000];
-char afterdata[1000000];
+#include "huffman.h"
 int main() {
   struct sockaddr_in info;
 
-  static unsigned int fd;
+  unsigned int fd;
   if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // no AF_LOCAL
     perror("creat socket error.\n");
-  char *buf = "123";
+  
   bzero(&info, sizeof(info));
   while (1) {
-    char *tmp = malloc(100);
+    char tmp[20];
     scanf("%s", tmp);
     if (!strcmp(tmp, "goodbye")) {
-      printf("See you next time. ");
+      printf("See you next time.\n");
       break;
     } else if (!strcmp(tmp, "connect")) {
       char ip[100], port[100];
@@ -35,23 +33,54 @@ int main() {
     } else if (!strcmp(tmp, "upload")) {
       FILE *file;
       char filename[100];
-      scanf("%s", filename);
+
+      scanf(" %s", filename);
       file = fopen(filename, "rb");
       int num = 0;
-      bzero(filedata, sizeof(filedata));
-      while (!feof(file)) {
-        fread(filedata + num, sizeof(char), 1, file);
+      bzero(origindata, sizeof(origindata));
+      
+      while(fread(origindata + num, sizeof(char), 1, file) >0 ){
         ++num;
       }
       for (int i = 0; i < num; ++i) {
-        printf("%c", filedata[i]);
+        printf("%c", origindata[i]);
       }
-      afterdata = compress(filedata);
-      printf("Original file length: %d bytes, compressed file length: 23,768 "
-             "bytes (ratio: 16.95%)",
-             num);
+      printf("\n");
+      size = num;
+      compress();
+      printf("Original file length: %d bytes, compressed file length: 23,768 \n", num);
     } else {
     }
     // send(fd , buf, sizeof(buf), MSG_CONFIRM);
   }
 }
+
+int compress()
+{
+    find_frequency();
+    //do huffman
+
+    while(1){
+
+        if (listsize < 2)
+        {
+            treeroot = head->ptr;
+            break;
+        }
+
+        listnode_t *n = deletelist(head);
+
+        listnode_t *new = (listnode_t*) malloc(sizeof(listnode_t));
+        new->ptr = insert_huffmantree(n->ptr, n->next->ptr);
+        free(n->next);
+        free(n);
+        new->num = new->ptr->frequency;
+        insert_linkedlist(new);
+
+    }
+    unsigned char c [8] = {0};
+    dfs_coding(treeroot,c,0);
+    coding();
+    return 0;
+}
+

@@ -1,40 +1,49 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-typedef struct HuffmanNode
-{
-    int frequency;
-    int ASCCI;
-    char code; //1 byte
-    node *left;
-    node *right;
-}node_t;
 
-node *treeroot;
+unsigned char origindata[1000000];
+unsigned char afterdata[1000000];
 
-typedef struct listNode
-{
-    int num;
-    node *ptr;
-    linknode *next;
-}listnode_t_t;
+size_t size;
 
-unsigned int listsize; 
+typedef struct HuffmanNode {
+  int frequency;
+  int ASCII;
+  struct HuffmanNode *left;
+  struct HuffmanNode *right;
+} node_t;
+
+typedef struct {
+    unsigned char lencode;
+    unsigned char code[8]; // 8 byte
+}code_t;
+
+
+node_t *treeroot;
+
+typedef struct listNode {
+  int num;
+  int ASCII;
+  node_t *ptr;
+  struct listNode *next;
+} listnode_t;
+
+unsigned int listsize;
+
+
 
 listnode_t *head;
-int ASCCI_frequency[256];
-char table[256];
+int ASCII_frequency[256];
+code_t record[256];
 
-
-void find_frequcency(char* file);
+void find_frequency();
 void sort();
-listnode_t* deletelist();
-node* insert_huffmantree(node* first, node* second);
-void insert_linkedlist(node* New);
+listnode_t *deletelist();
+node_t *insert_huffmantree(node_t *first, node_t *second);
+void insert_linkedlist(listnode_t *New);
 
-void dfs_codeing(node *root);
+void dfs_coding(node_t *root, unsigned char *Code, unsigned char depth);
 
-
-char* coding();
-char* compress(char *file);
-
+int coding();
+int compress();
