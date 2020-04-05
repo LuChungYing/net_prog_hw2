@@ -1,3 +1,4 @@
+#include "huffman.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -6,14 +7,13 @@
 #include <strings.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include "huffman.h"
 int main() {
   struct sockaddr_in info;
 
   unsigned int fd;
   if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // no AF_LOCAL
     perror("creat socket error.\n");
-  
+
   bzero(&info, sizeof(info));
   while (1) {
     char tmp[20];
@@ -29,7 +29,8 @@ int main() {
       info.sin_port = htons(atoi(port));
       if (connect(fd, (struct sockaddr *)&info, sizeof(info)) == -1)
         perror("connect error");
-      printf("The server with IP “%s” has accepted your connection. ", ip);
+      else
+        printf("The server with IP “%s” has accepted your connection. \n", ip);
     } else if (!strcmp(tmp, "upload")) {
       FILE *file;
       char filename[100];
@@ -38,8 +39,8 @@ int main() {
       file = fopen(filename, "rb");
       int num = 0;
       bzero(origindata, sizeof(origindata));
-      
-      while(fread(origindata + num, sizeof(char), 1, file) >0 ){
+
+      while (fread(origindata + num, sizeof(char), 1, file) > 0) {
         ++num;
       }
       for (int i = 0; i < num; ++i) {
@@ -47,40 +48,37 @@ int main() {
       }
       printf("\n");
       size = num;
-      compress();
-      printf("Original file length: %d bytes, compressed file length: 23,768 \n", num);
+      int aftersize = compress(fd, filename);
+      printf(
+          "Original file length: %d bytes, compressed file length: %d  \n",
+          num,aftersize);
     } else {
     }
     // send(fd , buf, sizeof(buf), MSG_CONFIRM);
   }
 }
 
-int compress()
-{
-    find_frequency();
-    //do huffman
+int compress(int fd, char *filename) {
+  find_frequency();
+  // do huffman
 
-    while(1){
+  while (1) {
 
-        if (listsize < 2)
-        {
-            treeroot = head->ptr;
-            break;
-        }
-
-        listnode_t *n = deletelist(head);
-
-        listnode_t *new = (listnode_t*) malloc(sizeof(listnode_t));
-        new->ptr = insert_huffmantree(n->ptr, n->next->ptr);
-        free(n->next);
-        free(n);
-        new->num = new->ptr->frequency;
-        insert_linkedlist(new);
-
+    if (listsize < 2) {
+      treeroot = head->ptr;
+      break;
     }
-    unsigned char c [8] = {0};
-    dfs_coding(treeroot,c,0);
-    coding();
-    return 0;
-}
 
+    listnode_t *n = deletelist(head);
+
+    listnode_t *new = (listnode_t *)malloc(sizeof(listnode_t));
+    new->ptr = insert_huffmantree(n->ptr, n->next->ptr);
+    free(n->next);
+    free(n);
+    new->num = new->ptr->frequency;
+    insert_linkedlist(new);
+  }
+  unsigned char c[8] = {0};
+  dfs_coding(treeroot, c, 0);
+  return  coding(fd, filename);
+}

@@ -1,7 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 unsigned char origindata[1000000];
 unsigned char afterdata[1000000];
 
@@ -15,10 +12,9 @@ typedef struct HuffmanNode {
 } node_t;
 
 typedef struct {
-    unsigned char lencode;
-    unsigned char code[8]; // 8 byte
-}code_t;
-
+  unsigned char lencode;
+  unsigned char code[8]; // 8 byte
+} code_t;
 
 node_t *treeroot;
 
@@ -30,8 +26,6 @@ typedef struct listNode {
 } listnode_t;
 
 unsigned int listsize;
-
-
 
 listnode_t *head;
 int ASCII_frequency[256];
@@ -45,5 +39,6 @@ void insert_linkedlist(listnode_t *New);
 
 void dfs_coding(node_t *root, unsigned char *Code, unsigned char depth);
 
-int coding();
-int compress();
+int min(int, int);
+int coding(int, char *);
+int compress(int fd, char *filename);
