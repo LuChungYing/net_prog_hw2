@@ -17,7 +17,7 @@ typedef struct treenode {
 } node_t;
 node_t *root;
 
-void buildtree(int, unsigned char *, int);
+void buildtree(int, unsigned char *, int,FILE*);
 int used_ASCII[256];
 size_t p_size;
 size_t o_size;
@@ -49,8 +49,6 @@ int main() {
     fflush(stdout);
     int s;
     while ((s = read(client_fd, data, sizeof(data))) > 0) {
-      FILE *ptr = fopen("receive", "wb");
-      fwrite(data, s, 1, ptr);
       memcpy(&p_size, data, sizeof(size_t));
       p_size = ntohl(p_size);
       p_size -= s;
@@ -58,7 +56,6 @@ int main() {
       o_size = ntohl(o_size);
       char filename[255];
       memcpy(filename, data + 8, 255); // 4(p_size) +4(o_size)
-      printf("filename = %s\n", filename);
       unsigned char lencode;
       unsigned char code[8];
       for(int i=0;i<256;i++){
@@ -67,15 +64,22 @@ int main() {
       }
       int codeindex = 295;
       root = (node_t *)calloc(sizeof(node_t), 1);
+      char hfilename[255];
+      strcpy(hfilename,filename);
+      strcat(hfilename,".code");
+      FILE *fffd = fopen(hfilename, "w+");
+      fprintf(fffd,"Alphabet (ASCII code)  length  Codeword\n");
       for (int i = 0; i < 256; i++) {
         if (used_ASCII[i]) {
           lencode = data[codeindex++];
           memcpy(code, &data[codeindex], ceil(lencode / 8.0));
           codeindex += ceil(lencode / 8.0);
-          buildtree(i, code, lencode);
+          buildtree(i, code, lencode,fffd);
         }
       }
-      strcat(filename, ".code");
+      fclose(fffd);
+      printf("The client sends a file “%s” with size of %ld bytes.\nThe Huffman coding data are stored in “%s”.\n", filename, o_size, hfilename);
+      fflush(stdout);
       int ffd = open(filename, O_CREAT | O_WRONLY | O_TRUNC, 0644);
       node_t *current = root;
       for (int i = codeindex; i < s; i++) {
@@ -99,7 +103,6 @@ int main() {
       while (p_size > 0) {
         s = read(client_fd, data, 1024 < p_size ? 1024 : p_size);
         p_size -= s;
-        fwrite(data, s, 1, ptr);
         if (s <= 0)
           break;
         for (int i = 0; i < s; i++) {
@@ -121,24 +124,34 @@ int main() {
         }
       }
       close(ffd);
-      fclose(ptr);
     }
+    printf("The client “%s” with port %d has terminated the connection.\n",inet_ntoa(client_info.sin_addr), client_info.sin_port);
+    fflush(stdout);
   }
 }
-void buildtree(int ASCII, unsigned char *code, int depth) {
+void buildtree(int ASCII, unsigned char *code, int depth, FILE* ptr) {
   node_t *current = root;
+
+  char pcode[20];
+
   for (int i = 0; i < depth; ++i) {
     if (code[(i / 8)] & 128 >> (i % 8)) {
       if (!current->right) {
         current->right = (node_t *)calloc(sizeof(node_t), 1);
       }
+      pcode[i] = '1';
       current = current->right;
     } else {
       if (!current->left) {
         current->left = (node_t *)calloc(sizeof(node_t), 1);
       }
+      pcode[i] = '0';
       current = current->left;
     }
+    pcode[i+1] = '\0';
   }
   current->ASCII = ASCII;
+  fprintf(ptr,"%c\t\t\t%d\t%s\n",ASCII,depth,pcode);
+
+
 }

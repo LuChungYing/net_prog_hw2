@@ -105,7 +105,6 @@ int coding(int fd, char *filename) {
   unsigned char t = 0;
   int offset = 0;
   int after_index = 4 + 4 + NAME_MAX;
-  printf("%d\n", NAME_MAX);
   strcpy(afterdata + 8, filename);
   // table
   t = 0;

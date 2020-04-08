@@ -43,10 +43,6 @@ int main() {
       while (fread(origindata + num, sizeof(char), 1, file) > 0) {
         ++num;
       }
-      for (int i = 0; i < num; ++i) {
-        printf("%c", origindata[i]);
-      }
-      printf("\n");
       size = num;
       int aftersize = compress(fd, filename);
       printf(
